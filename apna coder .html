@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Universal Encoder/Decoder</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {
+            background: linear-gradient(180deg, #FF9933 0%, #FFFFFF 50%, #138808 100%);
+            background-size: 100% 100%;
+            min-height: 100vh; margin: 0; padding: 0;
+        }
+        .main-container {
+            max-width: 960px;
+            margin: 110px auto 65px auto;
+            display: flex;
+            gap: 2.5vw;
+            background: rgba(255,255,255,0.97);
+            padding: 42px 24px 24px 24px;
+            border-radius: 22px;
+            box-shadow: 0 2px 25px 8px #00000022;
+            z-index: 2;
+            position: relative;
+        }
+        .column {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            position: relative;
+        }
+        h3 { margin: 0 0 16px 0; color: #138808; font-weight: 700; text-shadow: 1px 2px 8px #FF993388;}
+        textarea, input[type='text'] {
+            width: 100%; padding: 14px; border-radius: 7px; border: 2px solid #FF9933;
+            font-size: 1.14em; background: #fffef9;
+            box-shadow: 0 2px 6px #13880822;
+            transition: border 0.2s;
+        }
+        textarea:focus, input[type='text']:focus { border: 2.5px solid #138808; }
+        input[readonly] { background: #fff9f0; font-weight: 600; }
+        button {
+            padding: 9px 18px;
+            background: linear-gradient(90deg,#FF9933,#FFFFFF,#138808 70%);
+            color: #000; border: none; border-radius: 7px; font-size: 1.08em;
+            cursor: pointer; margin: 5px 0; font-weight: 700; letter-spacing: 1px;
+            box-shadow: 0 2px 8px #00000016;
+            transition: transform 0.15s, box-shadow 0.15s;
+        }
+        button:hover { background: #FF9933; color:#fff; transform: scale(1.07);}
+        .row-label { font-size: 1em; color: #138808; font-weight: 600; margin-bottom: 0;}
+        .result-actions { margin-top: 6px; display: flex; gap: 10px; }
+        @media (max-width:700px){
+            .main-container { flex-direction: column; padding: 14px 8vw;}
+        }
+        /* Animated banner lines */
+        .top-animated, .bottom-animated {
+            position: fixed;
+            left: 0; right: 0;
+            width: 100%;
+            padding: 0;
+            z-index: 4000;
+            background: transparent;
+            display: flex;
+            justify-content: center;
+            pointer-events: none;
+        }
+        .top-animated { top: 45px; }
+        .bottom-animated { bottom: 45px; }
+        .marquee-text {
+            display: inline-block;
+            padding: 10px 30px;
+            font-size: 1.3em;
+            font-family: 'Segoe UI Black', Arial, sans-serif;
+            font-weight: 900;
+            letter-spacing: 4px;
+            color: #fff;
+            background: linear-gradient(90deg,#FF9933, #FFFFFF, #138808, #FF9933 90%);
+            background-size: 400% 100%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradientMove 4s linear infinite, marqueeMove 10s linear infinite;
+            text-shadow: 0 1px 8px #0007, 0 3px 20px #eee5;
+            white-space: nowrap;
+            pointer-events: none;
+        }
+        @keyframes gradientMove {
+            0%{background-position:0% 50%;}
+            50%{background-position:100% 50%;}
+            100%{background-position:0% 50%;}
+        }
+        @keyframes marqueeMove {
+            0% { transform: translateX(100vw);}
+            100% { transform: translateX(-110vw);}
+        }
+        /* Column-wise credit */
+        .column-credit {
+            text-align: center;
+            font-size: 0.98em;
+            font-weight: 700;
+            color: #FF9933;
+            margin-top: 10px;
+            text-shadow: 0 1px 3px #13880855;
+        }
+        /* Tiranga waving area */
+        .tiranga-center-area {
+            width: 97vw; max-width:1200px; min-height: 180px;
+            margin: 36px auto 35px auto;
+            border-radius: 28px;
+            box-shadow: 0 0 20px #13880899, 0 2px 22px #ff993377;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            z-index: 1;
+        }
+        .flag-bg {
+            position: absolute; left: 0; top: 0; width: 100%; height: 100%;
+            opacity: 0.95; z-index: 1;
+            animation: flagWave 4s infinite linear;
+        }
+        @keyframes flagWave {
+            0% { transform: scaleY(1.03) translateY(0px);}
+            25%{ transform: scaleY(1.07) translateY(-5px);}
+            45%{ transform: scaleY(0.99) translateY(8px);}
+            75%{ transform: scaleY(1.06) translateY(-7px);}
+            100%{ transform: scaleY(1.03) translateY(0px);}
+        }
+        .tiranga-hero-text {
+            position: relative;
+            z-index: 2;
+            font-size: 3.5em;
+            font-family: 'Segoe UI Black', Arial, sans-serif;
+            font-weight: 900;
+            letter-spacing: 7px;
+            text-align: center;
+            background: linear-gradient(90deg, #FF9933, #fff, #138808, #FF9933 95%);
+            background-size: 450% 100%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: inline-block;
+            animation: tirangaTextWave 2.5s linear infinite, gradientTextMove 7s ease-in-out infinite;
+            text-shadow: 0 5px 12px #0006, 3px 2px 28px #fff7, 2px 6px 25px #FF9935bb;
+            filter: drop-shadow(0 1px 10px #ff99333e) drop-shadow(0 0px 14px #1388080a);
+        }
+        @keyframes tirangaTextWave {
+            0% {   transform: scale(1) rotate(-1deg);}
+            25% {  transform: scale(1.08) rotate(2deg);}
+            50% {  transform: scale(1.14) rotate(-2deg);}
+            75% {  transform: scale(1.10) rotate(3deg);}
+            100%{  transform: scale(1) rotate(-1deg);}
+        }
+        @keyframes gradientTextMove {
+            0%{background-position:0%;}
+            100%{background-position:450%;}
+        }
+        /* Top/bottom header */
+        .header-bar {
+            position: fixed;
+            width: 100%;
+            padding: 13px 0 9px 0;
+            text-align: center;
+            font-size: 1.11em;
+            font-family: 'Segoe UI Black', Arial, sans-serif;
+            font-weight: 800;
+            color: #fff;
+            background: linear-gradient(90deg,#FF9933, #138808);
+            z-index: 5000;
+            box-shadow: 0 2px 10px #00000044;
+            letter-spacing: 3px;
+            text-shadow: 0 2px 8px #0006;
+        }
+        .header-top { top: 0; }
+        .header-bottom { bottom: 0; }
+        @media (max-width:460px){
+            .tiranga-hero-text {font-size:2em;letter-spacing:2px;}
+            .main-container {margin-top:80px;}
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Header -->
+    <div class="header-bar header-top">Credit by Nitin Kumar with GOVERNMENT POLYTECHNIC MOTIHARI</div>
+    <!-- Top Animated Line -->
+    <div class="top-animated">
+        <span class="marquee-text">Create by Nitin Rock &nbsp;•&nbsp; Create by Nitin Rock &nbsp;•&nbsp; Create by Nitin Rock</span>
+    </div>
+
+    <div class="main-container">
+        <!-- Column 1: Text to Code -->
+        <div class="column">
+            <h3>Text to Code (Any Character)</h3>
+            <div class="row-label">Enter Anything (text, emojis, symbols):</div>
+            <textarea id="plainText" rows="3" placeholder="Type any text, symbols, emoji..."></textarea>
+            <button onclick="encode()">Encrypt to Code</button>
+            <div class="row-label">Encrypted Code:</div>
+            <input type="text" id="encryptedText" readonly placeholder="Code appears here">
+            <div class="result-actions">
+                <button onclick="copyEncrypted()">Copy</button>
+                <button onclick="clearLeft()">Clear</button>
+            </div>
+            <div class="column-credit">Create by Nitin Rock</div>
+        </div>
+        <!-- Column 2: Code to Text -->
+        <div class="column">
+            <h3>Code to Text (Any Character)</h3>
+            <div class="row-label">Enter Code (output from left):</div>
+            <textarea id="cipherText" rows="3" placeholder="Paste encrypted code here"></textarea>
+            <button onclick="decode()">Decrypt to Text</button>
+            <div class="row-label">Decoded Text:</div>
+            <input type="text" id="decryptedText" readonly placeholder="Decoded text appears here">
+            <div class="result-actions">
+                <button onclick="copyDecrypted()">Copy</button>
+                <button onclick="clearRight()">Clear</button>
+            </div>
+            <div class="column-credit">Create by Nitin Rock</div>
+        </div>
+    </div>
+    <!-- Tiranga waving center area -->
+    <div class="tiranga-center-area">
+        <svg class="flag-bg" viewBox="0 0 600 150" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+            <rect x="0" y="0" width="600" height="50" fill="#FF9933"/>
+            <rect x="0" y="50" width="600" height="50" fill="#fff"/>
+            <rect x="0" y="100" width="600" height="50" fill="#138808"/>
+        </svg>
+        <span class="tiranga-hero-text">Create by Nitin Rock</span>
+    </div>
+    <!-- Bottom Animated Line -->
+    <div class="bottom-animated">
+        <span class="marquee-text">Create by Nitin Rock &nbsp;•&nbsp; Create by Nitin Rock &nbsp;•&nbsp; Create by Nitin Rock</span>
+    </div>
+    <!-- Bottom Header -->
+    <div class="header-bar header-bottom">Credit by Nitin Kumar with GOVERNMENT POLYTECHNIC MOTIHARI</div>
+    <script>
+        function encode() {
+            const text = document.getElementById('plainText').value;
+            let encoded = [];
+            for (const ch of text) {
+                let hex = ch.codePointAt(0).toString(16).padStart(5, '0');
+                encoded.push(hex);
+            }
+            document.getElementById('encryptedText').value = encoded.join(' ');
+        }
+        function decode() {
+            const input = document.getElementById('cipherText').value.trim();
+            let decoded = '';
+            const regex = /[0-9a-fA-F]{5}/g;
+            let matches = input.match(regex);
+            if (matches) {
+                for (const hex of matches) {
+                    decoded += String.fromCodePoint(parseInt(hex, 16));
+                }
+            }
+            document.getElementById('decryptedText').value = decoded;
+        }
+        function copyEncrypted() {
+            const out = document.getElementById('encryptedText');
+            out.select();
+            out.setSelectionRange(0, 99999);
+            document.execCommand('copy');
+        }
+        function copyDecrypted() {
+            const out = document.getElementById('decryptedText');
+            out.select();
+            out.setSelectionRange(0, 99999);
+            document.execCommand('copy');
+        }
+        function clearLeft() {
+            document.getElementById('plainText').value = '';
+            document.getElementById('encryptedText').value = '';
+        }
+        function clearRight() {
+            document.getElementById('cipherText').value = '';
+            document.getElementById('decryptedText').value = '';
+        }
+    </script>
+</body>
+</html>
