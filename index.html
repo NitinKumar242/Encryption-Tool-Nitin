@@ -2,278 +2,604 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Universal Encoder/Decoder</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tricolor Cipher - By Nitin Rock</title>
     <style>
-        body {
-            background: linear-gradient(180deg, #FF9933 0%, #FFFFFF 50%, #138808 100%);
-            background-size: 100% 100%;
-            min-height: 100vh; margin: 0; padding: 0;
-        }
-        .main-container {
-            max-width: 960px;
-            margin: 110px auto 65px auto;
-            display: flex;
-            gap: 2.5vw;
-            background: rgba(255,255,255,0.97);
-            padding: 42px 24px 24px 24px;
-            border-radius: 22px;
-            box-shadow: 0 2px 25px 8px #00000022;
-            z-index: 2;
-            position: relative;
-        }
-        .column {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 18px;
-            position: relative;
-        }
-        h3 { margin: 0 0 16px 0; color: #138808; font-weight: 700; text-shadow: 1px 2px 8px #FF993388;}
-        textarea, input[type='text'] {
-            width: 100%; padding: 14px; border-radius: 7px; border: 2px solid #FF9933;
-            font-size: 1.14em; background: #fffef9;
-            box-shadow: 0 2px 6px #13880822;
-            transition: border 0.2s;
-        }
-        textarea:focus, input[type='text']:focus { border: 2.5px solid #138808; }
-        input[readonly] { background: #fff9f0; font-weight: 600; }
-        button {
-            padding: 9px 18px;
-            background: linear-gradient(90deg,#FF9933,#FFFFFF,#138808 70%);
-            color: #000; border: none; border-radius: 7px; font-size: 1.08em;
-            cursor: pointer; margin: 5px 0; font-weight: 700; letter-spacing: 1px;
-            box-shadow: 0 2px 8px #00000016;
-            transition: transform 0.15s, box-shadow 0.15s;
-        }
-        button:hover { background: #FF9933; color:#fff; transform: scale(1.07);}
-        .row-label { font-size: 1em; color: #138808; font-weight: 600; margin-bottom: 0;}
-        .result-actions { margin-top: 6px; display: flex; gap: 10px; }
-        @media (max-width:700px){
-            .main-container { flex-direction: column; padding: 14px 8vw;}
-        }
-        /* Animated banner lines */
-        .top-animated, .bottom-animated {
-            position: fixed;
-            left: 0; right: 0;
-            width: 100%;
+        * {
+            margin: 0;
             padding: 0;
-            z-index: 4000;
-            background: transparent;
-            display: flex;
-            justify-content: center;
-            pointer-events: none;
+            box-sizing: border-box;
         }
-        .top-animated { top: 45px; }
-        .bottom-animated { bottom: 45px; }
+
+        :root {
+            --saffron: #FF9933;
+            --white: #FFFFFF;
+            --green: #138808;
+            --dark: #1a1a1a;
+            --glass: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(135deg, 
+                var(--saffron) 0%, 
+                var(--saffron) 30%,
+                var(--white) 30%, 
+                var(--white) 70%,
+                var(--green) 70%, 
+                var(--green) 100%);
+            position: relative;
+            overflow-x: hidden;
+            animation: backgroundShift 20s ease-in-out infinite;
+        }
+
+        @keyframes backgroundShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        /* Header & Footer */
+        .header, .footer {
+            position: fixed;
+            width: 100%;
+            background: linear-gradient(90deg, 
+                var(--saffron), 
+                var(--white), 
+                var(--green));
+            backdrop-filter: blur(10px);
+            padding: 15px;
+            text-align: center;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        .header {
+            top: 0;
+            border-bottom: 2px solid rgba(255,255,255,0.3);
+        }
+
+        .footer {
+            bottom: 0;
+            border-top: 2px solid rgba(255,255,255,0.3);
+        }
+
+        .header h1, .footer h1 {
+            color: var(--dark);
+            font-size: clamp(14px, 3vw, 20px);
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(255,255,255,0.5);
+            letter-spacing: 1px;
+        }
+
+        /* Marquee */
+        .marquee-container {
+            position: fixed;
+            width: 100%;
+            overflow: hidden;
+            background: rgba(0,0,0,0.1);
+            backdrop-filter: blur(5px);
+            padding: 8px 0;
+        }
+
+        .marquee-top {
+            top: 60px;
+        }
+
+        .marquee-bottom {
+            bottom: 60px;
+        }
+
         .marquee-text {
             display: inline-block;
-            padding: 10px 30px;
-            font-size: 1.3em;
-            font-family: 'Segoe UI Black', Arial, sans-serif;
-            font-weight: 900;
-            letter-spacing: 4px;
-            color: #fff;
-            background: linear-gradient(90deg,#FF9933, #FFFFFF, #138808, #FF9933 90%);
-            background-size: 400% 100%;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            animation: gradientMove 4s linear infinite, marqueeMove 10s linear infinite;
-            text-shadow: 0 1px 8px #0007, 0 3px 20px #eee5;
             white-space: nowrap;
-            pointer-events: none;
+            animation: marquee 20s linear infinite;
+            font-weight: bold;
+            font-size: 16px;
+            background: linear-gradient(90deg, 
+                var(--saffron), 
+                var(--white), 
+                var(--green),
+                var(--saffron));
+            background-size: 200% 100%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: marquee 20s linear infinite, 
+                       gradientShift 3s ease-in-out infinite;
         }
-        @keyframes gradientMove {
-            0%{background-position:0% 50%;}
-            50%{background-position:100% 50%;}
-            100%{background-position:0% 50%;}
+
+        @keyframes marquee {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
         }
-        @keyframes marqueeMove {
-            0% { transform: translateX(100vw);}
-            100% { transform: translateX(-110vw);}
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
         }
-        /* Column-wise credit */
-        .column-credit {
+
+        /* Main Container */
+        .main-container {
+            padding: 140px 20px 140px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 40px;
+        }
+
+        /* Hero Section */
+        .hero-section {
             text-align: center;
-            font-size: 0.98em;
-            font-weight: 700;
-            color: #FF9933;
-            margin-top: 10px;
-            text-shadow: 0 1px 3px #13880855;
-        }
-        /* Tiranga waving area */
-        .tiranga-center-area {
-            width: 97vw; max-width:1200px; min-height: 180px;
-            margin: 36px auto 35px auto;
-            border-radius: 28px;
-            box-shadow: 0 0 20px #13880899, 0 2px 22px #ff993377;
             position: relative;
+            padding: 40px 0;
+        }
+
+        /* Indian Flag Animation */
+        .flag-container {
+            width: 200px;
+            height: 120px;
+            margin: 0 auto 30px;
+            position: relative;
+            animation: wave 3s ease-in-out infinite;
+        }
+
+        @keyframes wave {
+            0%, 100% { transform: translateY(0) rotateY(0deg); }
+            25% { transform: translateY(-10px) rotateY(10deg); }
+            75% { transform: translateY(10px) rotateY(-10deg); }
+        }
+
+        .flag {
+            width: 100%;
+            height: 100%;
+            border-radius: 5px;
             overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            position: relative;
+        }
+
+        .flag-stripe {
+            width: 100%;
+            height: 33.33%;
+            position: relative;
+        }
+
+        .saffron-stripe { background: var(--saffron); }
+        .white-stripe { 
+            background: var(--white); 
             display: flex;
             align-items: center;
             justify-content: center;
-            background: transparent;
-            z-index: 1;
         }
-        .flag-bg {
-            position: absolute; left: 0; top: 0; width: 100%; height: 100%;
-            opacity: 0.95; z-index: 1;
-            animation: flagWave 4s infinite linear;
-        }
-        @keyframes flagWave {
-            0% { transform: scaleY(1.03) translateY(0px);}
-            25%{ transform: scaleY(1.07) translateY(-5px);}
-            45%{ transform: scaleY(0.99) translateY(8px);}
-            75%{ transform: scaleY(1.06) translateY(-7px);}
-            100%{ transform: scaleY(1.03) translateY(0px);}
-        }
-        .tiranga-hero-text {
+        .green-stripe { background: var(--green); }
+
+        /* Ashoka Chakra */
+        .chakra {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #000080;
+            border-radius: 50%;
             position: relative;
-            z-index: 2;
-            font-size: 3.5em;
-            font-family: 'Segoe UI Black', Arial, sans-serif;
-            font-weight: 900;
-            letter-spacing: 7px;
-            text-align: center;
-            background: linear-gradient(90deg, #FF9933, #fff, #138808, #FF9933 95%);
-            background-size: 450% 100%;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            display: inline-block;
-            animation: tirangaTextWave 2.5s linear infinite, gradientTextMove 7s ease-in-out infinite;
-            text-shadow: 0 5px 12px #0006, 3px 2px 28px #fff7, 2px 6px 25px #FF9935bb;
-            filter: drop-shadow(0 1px 10px #ff99333e) drop-shadow(0 0px 14px #1388080a);
+            animation: spin 10s linear infinite;
         }
-        @keyframes tirangaTextWave {
-            0% {   transform: scale(1) rotate(-1deg);}
-            25% {  transform: scale(1.08) rotate(2deg);}
-            50% {  transform: scale(1.14) rotate(-2deg);}
-            75% {  transform: scale(1.10) rotate(3deg);}
-            100%{  transform: scale(1) rotate(-1deg);}
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
-        @keyframes gradientTextMove {
-            0%{background-position:0%;}
-            100%{background-position:450%;}
-        }
-        /* Top/bottom header */
-        .header-bar {
-            position: fixed;
+
+        .chakra::before {
+            content: '';
+            position: absolute;
             width: 100%;
-            padding: 13px 0 9px 0;
-            text-align: center;
-            font-size: 1.11em;
-            font-family: 'Segoe UI Black', Arial, sans-serif;
-            font-weight: 800;
-            color: #fff;
-            background: linear-gradient(90deg,#FF9933, #138808);
-            z-index: 5000;
-            box-shadow: 0 2px 10px #00000044;
-            letter-spacing: 3px;
-            text-shadow: 0 2px 8px #0006;
+            height: 100%;
+            background: radial-gradient(circle at center, 
+                transparent 35%, 
+                #000080 35%, 
+                #000080 40%, 
+                transparent 40%);
+            top: 0;
+            left: 0;
         }
-        .header-top { top: 0; }
-        .header-bottom { bottom: 0; }
-        @media (max-width:460px){
-            .tiranga-hero-text {font-size:2em;letter-spacing:2px;}
-            .main-container {margin-top:80px;}
+
+        /* Hero Title */
+        .hero-title {
+            font-size: clamp(30px, 6vw, 60px);
+            font-weight: 900;
+            background: linear-gradient(45deg, 
+                var(--saffron), 
+                var(--white), 
+                var(--green));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px rgba(255,153,51,0.5);
+            animation: float 3s ease-in-out infinite;
+            letter-spacing: 2px;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* Encryption/Decryption Area */
+        .crypto-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        .glass-card {
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+        }
+
+        .card-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            background: linear-gradient(90deg, var(--saffron), var(--green));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-align: center;
+        }
+
+        .input-area, .output-area {
+            width: 100%;
+            min-height: 120px;
+            padding: 15px;
+            border: 2px solid rgba(255,255,255,0.2);
+            border-radius: 10px;
+            background: rgba(255,255,255,0.05);
+            color: var(--dark);
+            font-size: 16px;
+            font-family: 'Courier New', monospace;
+            resize: vertical;
+            transition: all 0.3s ease;
+            margin-bottom: 15px;
+        }
+
+        .input-area:focus, .output-area:focus {
+            outline: none;
+            border-color: var(--saffron);
+            background: rgba(255,255,255,0.1);
+            box-shadow: 0 0 20px rgba(255,153,51,0.3);
+        }
+
+        .output-area {
+            background: rgba(255,255,255,0.08);
+            cursor: not-allowed;
+        }
+
+        /* Buttons */
+        .btn-primary {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, var(--saffron), var(--green));
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .btn-secondary {
+            flex: 1;
+            padding: 10px;
+            background: rgba(255,255,255,0.1);
+            color: var(--dark);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.2);
+            transform: translateY(-2px);
+        }
+
+        .card-footer {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 14px;
+            font-weight: bold;
+            color: var(--saffron);
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .crypto-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .hero-title {
+                font-size: 28px;
+            }
+            
+            .flag-container {
+                width: 150px;
+                height: 90px;
+            }
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, var(--saffron), var(--green));
+            color: white;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-weight: bold;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            z-index: 2000;
+            display: none;
+            animation: fadeInOut 2s ease;
+        }
+
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0; }
+            20%, 80% { opacity: 1; }
         }
     </style>
 </head>
 <body>
-    <!-- Top Header -->
-    <div class="header-bar header-top">Credit by Nitin Kumar with GOVERNMENT POLYTECHNIC MOTIHARI</div>
-    <!-- Top Animated Line -->
-    <div class="top-animated">
-        <span class="marquee-text">Create by Nitin Rock &nbsp;•&nbsp; Create by Nitin Rock &nbsp;•&nbsp; Create by Nitin Rock</span>
+    <!-- Header -->
+    <div class="header">
+        <h1>Credit by Nitin Kumar with GOVERNMENT POLYTECHNIC MOTIHARI</h1>
     </div>
 
+    <!-- Top Marquee -->
+    <div class="marquee-container marquee-top">
+        <div class="marquee-text">
+            Create by Nitin Rock – Create by Nitin Rock – Create by Nitin Rock – Create by Nitin Rock – Create by Nitin Rock – Create by Nitin Rock – 
+        </div>
+    </div>
+
+    <!-- Main Container -->
     <div class="main-container">
-        <!-- Column 1: Text to Code -->
-        <div class="column">
-            <h3>Text to Code (Any Character)</h3>
-            <div class="row-label">Enter Anything (text, emojis, symbols):</div>
-            <textarea id="plainText" rows="3" placeholder="Type any text, symbols, emoji..."></textarea>
-            <button onclick="encode()">Encrypt to Code</button>
-            <div class="row-label">Encrypted Code:</div>
-            <input type="text" id="encryptedText" readonly placeholder="Code appears here">
-            <div class="result-actions">
-                <button onclick="copyEncrypted()">Copy</button>
-                <button onclick="clearLeft()">Clear</button>
+        <!-- Hero Section -->
+        <div class="hero-section">
+            <div class="flag-container">
+                <div class="flag">
+                    <div class="flag-stripe saffron-stripe"></div>
+                    <div class="flag-stripe white-stripe">
+                        <div class="chakra"></div>
+                    </div>
+                    <div class="flag-stripe green-stripe"></div>
+                </div>
             </div>
-            <div class="column-credit">Create by Nitin Rock</div>
+            <h1 class="hero-title">Create by Nitin Rock</h1>
         </div>
-        <!-- Column 2: Code to Text -->
-        <div class="column">
-            <h3>Code to Text (Any Character)</h3>
-            <div class="row-label">Enter Code (output from left):</div>
-            <textarea id="cipherText" rows="3" placeholder="Paste encrypted code here"></textarea>
-            <button onclick="decode()">Decrypt to Text</button>
-            <div class="row-label">Decoded Text:</div>
-            <input type="text" id="decryptedText" readonly placeholder="Decoded text appears here">
-            <div class="result-actions">
-                <button onclick="copyDecrypted()">Copy</button>
-                <button onclick="clearRight()">Clear</button>
+
+        <!-- Encryption/Decryption Area -->
+        <div class="crypto-container">
+            <!-- Encryption Card -->
+            <div class="glass-card">
+                <h2 class="card-title">Text to Code (Any Character)</h2>
+                <textarea 
+                    id="encryptInput" 
+                    class="input-area" 
+                    placeholder="Enter any text, emoji, or symbol here... 🇮🇳"
+                ></textarea>
+                <button class="btn-primary" onclick="encryptText()">Encrypt to Code</button>
+                <textarea 
+                    id="encryptOutput" 
+                    class="output-area" 
+                    placeholder="Encrypted code will appear here..." 
+                    readonly
+                ></textarea>
+                <div class="btn-group">
+                    <button class="btn-secondary" onclick="copyText('encryptOutput')">Copy</button>
+                    <button class="btn-secondary" onclick="clearFields('encrypt')">Clear</button>
+                </div>
+                <div class="card-footer">Create by Nitin Rock</div>
             </div>
-            <div class="column-credit">Create by Nitin Rock</div>
+
+            <!-- Decryption Card -->
+            <div class="glass-card">
+                <h2 class="card-title">Code to Text (Any Character)</h2>
+                <textarea 
+                    id="decryptInput" 
+                    class="input-area" 
+                    placeholder="Enter encrypted code here..."
+                ></textarea>
+                <button class="btn-primary" onclick="decryptText()">Decrypt to Text</button>
+                <textarea 
+                    id="decryptOutput" 
+                    class="output-area" 
+                    placeholder="Decrypted text will appear here..." 
+                    readonly
+                ></textarea>
+                <div class="btn-group">
+                    <button class="btn-secondary" onclick="copyText('decryptOutput')">Copy</button>
+                    <button class="btn-secondary" onclick="clearFields('decrypt')">Clear</button>
+                </div>
+                <div class="card-footer">Create by Nitin Rock</div>
+            </div>
         </div>
     </div>
-    <!-- Tiranga waving center area -->
-    <div class="tiranga-center-area">
-        <svg class="flag-bg" viewBox="0 0 600 150" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
-            <rect x="0" y="0" width="600" height="50" fill="#FF9933"/>
-            <rect x="0" y="50" width="600" height="50" fill="#fff"/>
-            <rect x="0" y="100" width="600" height="50" fill="#138808"/>
-        </svg>
-        <span class="tiranga-hero-text">Create by Nitin Rock</span>
+
+    <!-- Bottom Marquee -->
+    <div class="marquee-container marquee-bottom">
+        <div class="marquee-text">
+            Create by Nitin Rock – Create by Nitin Rock – Create by Nitin Rock – Create by Nitin Rock – Create by Nitin Rock – Create by Nitin Rock – 
+        </div>
     </div>
-    <!-- Bottom Animated Line -->
-    <div class="bottom-animated">
-        <span class="marquee-text">Create by Nitin Rock &nbsp;•&nbsp; Create by Nitin Rock &nbsp;•&nbsp; Create by Nitin Rock</span>
+
+    <!-- Footer -->
+    <div class="footer">
+        <h1>Credit by Nitin Kumar with GOVERNMENT POLYTECHNIC MOTIHARI</h1>
     </div>
-    <!-- Bottom Header -->
-    <div class="header-bar header-bottom">Credit by Nitin Kumar with GOVERNMENT POLYTECHNIC MOTIHARI</div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast"></div>
+
     <script>
-        function encode() {
-            const text = document.getElementById('plainText').value;
-            let encoded = [];
-            for (const ch of text) {
-                let hex = ch.codePointAt(0).toString(16).padStart(5, '0');
-                encoded.push(hex);
+        // Encryption function - Convert text to Unicode hex codes
+        function encryptText() {
+            const input = document.getElementById('encryptInput').value;
+            const output = document.getElementById('encryptOutput');
+            
+            if (!input) {
+                showToast('Please enter text to encrypt!');
+                return;
             }
-            document.getElementById('encryptedText').value = encoded.join(' ');
+            
+            // Convert each character to its Unicode hex code
+            const encrypted = Array.from(input)
+                .map(char => {
+                    const code = char.codePointAt(0);
+                    return code.toString(16).toUpperCase().padStart(4, '0');
+                })
+                .join(' ');
+            
+            output.value = encrypted;
+            showToast('Text encrypted successfully! 🔐');
         }
-        function decode() {
-            const input = document.getElementById('cipherText').value.trim();
-            let decoded = '';
-            const regex = /[0-9a-fA-F]{5}/g;
-            let matches = input.match(regex);
-            if (matches) {
-                for (const hex of matches) {
-                    decoded += String.fromCodePoint(parseInt(hex, 16));
-                }
+
+        // Decryption function - Convert Unicode hex codes back to text
+        function decryptText() {
+            const input = document.getElementById('decryptInput').value;
+            const output = document.getElementById('decryptOutput');
+            
+            if (!input) {
+                showToast('Please enter code to decrypt!');
+                return;
             }
-            document.getElementById('decryptedText').value = decoded;
+            
+            try {
+                // Split by spaces and convert each hex code back to character
+                const decrypted = input.trim()
+                    .split(/\s+/)
+                    .map(hex => {
+                        const code = parseInt(hex, 16);
+                        if (isNaN(code)) {
+                            throw new Error('Invalid hex code');
+                        }
+                        return String.fromCodePoint(code);
+                    })
+                    .join('');
+                
+                output.value = decrypted;
+                showToast('Code decrypted successfully! 🔓');
+            } catch (error) {
+                showToast('Invalid code format! Please check your input.');
+                output.value = '';
+            }
         }
-        function copyEncrypted() {
-            const out = document.getElementById('encryptedText');
-            out.select();
-            out.setSelectionRange(0, 99999);
-            document.execCommand('copy');
+
+        // Copy text to clipboard
+        async function copyText(elementId) {
+            const element = document.getElementById(elementId);
+            const text = element.value;
+            
+            if (!text) {
+                showToast('Nothing to copy!');
+                return;
+            }
+            
+            try {
+                await navigator.clipboard.writeText(text);
+                showToast('Copied to clipboard! 📋');
+                
+                // Visual feedback
+                element.style.background = 'rgba(255, 153, 51, 0.1)';
+                setTimeout(() => {
+                    element.style.background = 'rgba(255,255,255,0.08)';
+                }, 300);
+            } catch (err) {
+                // Fallback for older browsers
+                element.select();
+                document.execCommand('copy');
+                showToast('Copied to clipboard! 📋');
+            }
         }
-        function copyDecrypted() {
-            const out = document.getElementById('decryptedText');
-            out.select();
-            out.setSelectionRange(0, 99999);
-            document.execCommand('copy');
+
+        // Clear fields
+        function clearFields(type) {
+            if (type === 'encrypt') {
+                document.getElementById('encryptInput').value = '';
+                document.getElementById('encryptOutput').value = '';
+            } else {
+                document.getElementById('decryptInput').value = '';
+                document.getElementById('decryptOutput').value = '';
+            }
+            showToast('Fields cleared! 🧹');
         }
-        function clearLeft() {
-            document.getElementById('plainText').value = '';
-            document.getElementById('encryptedText').value = '';
+
+        // Show toast notification
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.style.display = 'block';
+            
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 2000);
         }
-        function clearRight() {
-            document.getElementById('cipherText').value = '';
-            document.getElementById('decryptedText').value = '';
-        }
+
+        // Add Enter key support for encryption/decryption
+        document.getElementById('encryptInput').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && e.ctrlKey) {
+                encryptText();
+            }
+        });
+
+        document.getElementById('decryptInput').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && e.ctrlKey) {
+                decryptText();
+            }
+        });
+
+        // Add some patriotic animation on load
+        window.addEventListener('load', function() {
+            showToast('Welcome to Tricolor Cipher! 🇮🇳');
+        });
     </script>
 </body>
 </html>
